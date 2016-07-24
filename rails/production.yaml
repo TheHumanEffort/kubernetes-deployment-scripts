@@ -1,0 +1,63 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: __APP_ID__-production
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: __APP_ID__-production
+    spec:
+      containers:
+      - name: rails
+        resources:
+          requests:
+            cpu: "200m"
+        env:
+          - name: RACK_ENV
+            value: production
+          - name: RAILS_ENV
+            value: production
+          - name: POSTGRES_ENV_EXT_HOST
+            value: __APP_ID__-postgres
+          - name: POSTGRES_ENV_POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: __APP_ID__-pg-auth
+                key: username
+          - name: POSTGRES_ENV_POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: __APP_ID__-pg-auth
+                key: password
+          - name: THREADS
+            value: "2:10"
+          - name: WORKERS
+            value: "1"
+          - name: PORT
+            value: "3000"
+        command: ["bash","-c","puma -t $THREADS -w $WORKERS --preload -b tcp://0.0.0.0:$PORT"]
+        image: __IMAGE__
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: __APP_ID__-production
+  labels:
+    app: __APP_ID__-production
+  annotations:
+    virtualHost: "__VIRTUAL_HOST__"
+    virtualHostPriority: "0"
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+  selector:
+    app: __APP_ID__-production
+
+
+
+          

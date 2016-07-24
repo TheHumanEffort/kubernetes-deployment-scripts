@@ -1,0 +1,55 @@
+metadata:
+  name: __APP_ID__-postgres
+apiVersion: v1
+kind: ReplicationController
+spec:
+  replicas: 1
+  selector:
+    name: __APP_ID__-postgres
+  template:
+    metadata:
+      labels:
+         name: __APP_ID__-postgres
+    spec:
+      containers:
+      - name: __APP_ID__-postgres
+        image: postgres:9.4
+        # disable this in production±
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgresdata
+          mountPath: /usr/local/var/postgres
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: __APP_ID__-pg-auth
+                key: username
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: __APP_ID__-pg-auth
+                key: password
+      # PostgreSQL Data
+      # Replace this with the persistent disk of your choice
+      # TODO: replace with Persistent Volume
+      volumes:
+      - name: postgresdata
+        gcePersistentDisk:
+          # your disk name here
+          pdName: __APP_ID__-pg-disk
+          fsType: ext4
+---
+metadata:
+  name: "__APP_ID__-postgres"
+kind: "Service"
+apiVersion: v1
+spec:
+  ports:
+  - name: "__APP_ID__-postgres"
+    protocol: "TCP"
+    port: 5432
+  selector:
+    name: __APP_ID__-postgres

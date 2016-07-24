@@ -1,11 +1,15 @@
-Kubernetes Static Site Deployment
+Kubernetes Rails App Deployment (Postgres)
 =====
 
 This script makes it easy to get started with a staging/production
-static site pushed out to Kubernetes.  It is designed to be copied
-into your app so that you can modify it to suit your needs.  It
-currently is designed to use a custom load balancer, but can easily be
-modified to support Ingress rules.
+rails app pushed out to Kubernetes (on Google Container Engine).  It
+is designed to be copied into your app so that you can modify it to
+suit your needs.  It currently is designed to use a custom load
+balancer, but can easily be modified to support Ingress rules.  It
+automatically provisions a postgres DB (with persistent disk and
+secret-stored credentials).  This recipe could easily be extended to
+support redis, elasticsearch, workers, etc.  It currently does none of
+these.
 
 Prerequisites
 ----
@@ -31,7 +35,7 @@ cd deploy
 Download the Makefile, and getting-started kubernetes YAML files.
 
 ```
-curl --remote-name-all https://raw.githubusercontent.com/TheHumanEffort/kubernetes-deployment-scripts/master/static_site/{Makefile,production.yaml,staging.yaml}
+curl --remote-name-all https://raw.githubusercontent.com/TheHumanEffort/kubernetes-deployment-scripts/master/rails/{Makefile,production.yaml,staging.yaml,postgres.yaml}
 ```
 
 Now configure things:
@@ -47,3 +51,4 @@ to suit your needs.  Now release again:
 make release
 ```
 
+Rails App
