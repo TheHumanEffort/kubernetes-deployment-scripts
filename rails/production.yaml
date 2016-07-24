@@ -37,7 +37,7 @@ spec:
             value: "1"
           - name: PORT
             value: "3000"
-        command: ["bash","-c","puma -t $THREADS -w $WORKERS --preload -b tcp://0.0.0.0:$PORT"]
+        command: ["bash","-c","tail -f /dev/null && puma -t $THREADS -w $WORKERS --preload -b tcp://0.0.0.0:$PORT"]
         image: __IMAGE__
         ports:
         - containerPort: 3000

@@ -22,12 +22,22 @@ release: .staging build
 	sed -i .tmp 's|image:.*|image: "$(IMG)"|' staging.yaml
 	rm staging.yaml.tmp
 	echo $(IMG) > .staging
+	@echo 'NOTICE!!!!!!'
+	@echo 'You probably have to initialize your database!!!!'
+	@echo 'You can do this with some variation of:'
+	@echo 'kubectl exec -it $$(kubectl get pod | grep $(NAME)-staging | awk '\''{ print $$1 }'\'' ) rake db:migrate'
+	@echo "Once this is done, you can delete this notice, remove the tail -f /dev/null from staging.yaml and `make .staging`"
 
 approve-staging: .production
 	kubectl patch deployment $(NAME)-production -p '{ "spec": { "template": { "spec": { "containers": [ { "name": "rails", "image": "$(shell cat .staging)" } ] } } } }'
 	sed -i .tmp 's|image:.*|image: "$(shell cat .staging)"|' production.yaml
 	rm production.yaml.tmp
 	cp .staging .production
+	@echo 'NOTICE!!!!!!'
+	@echo 'You probably have to initialize your database!!!!'
+	@echo 'You can do this with some variation of:'
+	@echo 'kubectl exec -it $$(kubectl get pod | grep $(NAME)-production | awk '\''{ print $$1 }'\'' ) rake db:migrate'
+	@echo "Once this is done, you can delete this notice, remove the tail -f /dev/null from production.yaml and `make .production`"
 
 release-production: .production build
 	gcloud docker push $(IMG)
@@ -35,6 +45,11 @@ release-production: .production build
 	sed -i .tmp 's|image:.*|image: "$(IMG)"|' production.yaml
 	rm production.yaml.tmp
 	echo $(IMG) > .production
+	@echo 'NOTICE!!!!!!'
+	@echo 'You probably have to initialize your database!!!!'
+	@echo 'You can do this with some variation of:'
+	@echo 'kubectl exec -it $$(kubectl get pod | grep $(NAME)-production | awk '\''{ print $$1 }'\'' ) rake db:migrate'
+	@echo "Once this is done, you can delete this notice, remove the tail -f /dev/null from production.yaml and `make .production`"
 
 build:
 	docker build -t $(IMG) ..
