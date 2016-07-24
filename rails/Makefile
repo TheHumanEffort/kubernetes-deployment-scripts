@@ -39,11 +39,11 @@ release-production: .production build
 build:
 	docker build -t $(IMG) ..
 
-.staging: .prepared staging.yaml
+.staging: .prepared .postgres staging.yaml
 	kubectl apply -f staging.yaml
 	touch .staging
 
-.production: .prepared production.yaml
+.production: .prepared .postgres production.yaml
 	kubectl apply -f production.yaml
 	touch .production
 
