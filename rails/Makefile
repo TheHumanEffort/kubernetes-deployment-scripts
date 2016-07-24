@@ -58,9 +58,13 @@ build:
 	kubectl apply -f staging.yaml
 	touch .staging
 
-.production: .prepared .postgres production.yaml
+.production: .prepared .postgres .secret_key_base production.yaml
 	kubectl apply -f production.yaml
 	touch .production
+
+.secret_key_base:
+	kubectl create secret generic $(NAME)-secret-key --from-literal=key-base=p$(shell openssl rand -hex 64)
+	touch .secret_key_base
 
 .postgres: postgres.yaml .pgsecret .pgdisk
 	kubectl apply -f postgres.yaml

@@ -31,6 +31,11 @@ spec:
               secretKeyRef:
                 name: __APP_ID__-pg-auth
                 key: password
+          - name: SECRET_KEY_BASE
+            valueFrom:
+              secretKeyRef:
+                name: __APP_ID__-secret-key
+                key: key-base
           - name: THREADS
             value: "2:10"
           - name: WORKERS
