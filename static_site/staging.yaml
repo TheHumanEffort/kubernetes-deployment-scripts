@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: __APP_ID__-staging
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: __APP_ID__-staging
+    spec:
+      containers:
+      - name: nginx
+        resources:
+          requests:
+            cpu: "50m"
+        image: __IMAGE__
+        ports:
+        - containerPort: 80
+
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: __APP_ID__-staging
+  labels:
+    app: __APP_ID__-staging
+  annotations:
+    virtualHost: "__STAGING_VIRTUAL_HOST__"
+    virtualHostPriority: "0"
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: __APP_ID__-staging
