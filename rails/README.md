@@ -52,3 +52,14 @@ make release
 ```
 
 Rails App
+
+
+More info
+----
+
+The `Dockerfile` in this directory is a reasonable starting point for
+a production application.  You may wish to make a few additional
+changes to your application, I usually make it so that logging goes
+out on STDERR instead of log/production.log.  This makes it so
+Kubernetes can make heads or tails of the log files, and they won't
+grow without bound.
