@@ -1,6 +1,6 @@
-APP_ID:=__APP_ID__
+NAME:=__APP_ID__
 VERSION:=v$(shell date +%YM%mD%dH%HM%M)
-IMG=__IMG_PREFIX__/$(APP_ID):$(VERSION)
+IMG=__IMG_PREFIX__/$(NAME):$(VERSION)
 
 define prompt-for
 	@{ \
