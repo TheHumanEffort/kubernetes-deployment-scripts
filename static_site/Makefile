@@ -7,7 +7,7 @@ define prompt-for
 	set -e ;\
 	read -p $(1) value ; \
 	echo $(3) | xargs -n 1 sed -i .tmp 's|__$(2)__|'$$value'|' ; \
-	rm *.tmp
+	rm *.tmp ;\
 	}
 endef
 
@@ -33,7 +33,7 @@ release-production: .production build
 
 build:
 	cd .. && make build
-	docker build -t $(IMG)
+	docker build -t $(IMG) ..
 
 .staging: .prepared staging.yaml
 	kubectl apply -f staging.yaml
