@@ -1,6 +1,7 @@
 NAME:=__APP_ID__
 VERSION:=v$(shell date +%YM%mD%dH%HM%M)
-IMG=__IMG_PREFIX__/$(NAME):$(VERSION)
+REPO=__IMG_PREFIX__/$(NAME)
+IMG=$(REPO):$(VERSION)
 
 POSTGRES_SECRET_NAME=$(NAME)-pg-auth
 POSTGRES_DISK_NAME=$(NAME)-pg-disk
@@ -16,8 +17,11 @@ define prompt-for
 	}
 endef
 
-release: .staging build
-	gcloud docker push $(IMG)
+release: .staging build release-staging
+release-patch: .staging patch-build release-staging
+
+release-staging:
+	docker push $(IMG)
 	kubectl patch deployment $(NAME)-staging -p '{ "spec": { "template": { "spec": { "containers": [ { "name": "rails", "image": "$(IMG)" } ] } } } }'
 	sed -i .tmp 's|image:.*|image: "$(IMG)"|' staging.yaml
 	rm staging.yaml.tmp
@@ -40,7 +44,7 @@ approve-staging: .production
 	@echo "Once this is done, you can delete this notice, remove the tail -f /dev/null from production.yaml and `make .production`"
 
 release-production: .production build
-	gcloud docker push $(IMG)
+	docker push $(IMG)
 	kubectl patch deployment $(NAME)-production -p '{ "spec": { "template": { "spec": { "containers": [ { "name": "rails", "image": "$(IMG)" } ] } } } }'
 	sed -i .tmp 's|image:.*|image: "$(IMG)"|' production.yaml
 	rm production.yaml.tmp
@@ -51,8 +55,17 @@ release-production: .production build
 	@echo 'kubectl exec -it $$(kubectl get pod | grep $(NAME)-production | awk '\''{ print $$1 }'\'' ) rake db:migrate'
 	@echo "Once this is done, you can delete this notice, remove the tail -f /dev/null from production.yaml and `make .production`"
 
+patch-build: FORCE
+	docker rm -f patch-latest || echo "nothing to delete"
+	docker run --name patch-latest $(REPO):latest bash -c "find /application -type f -exec stat --format '%Y :%y\!%n' \"{}\" \; | sort -nr | head -n 1" | awk -F '!' '{ print $$2 }'> last_file
+	bash -c "docker cp patch-latest:$$(cat last_file) .last-build && rm last_file"
+	cd .. && find app db config lib -type f -newer .last-build | awk '{ print "echo cp "$$1" ; docker cp "$$1" patch-latest:/application/"$$1  }' | bash
+	rm .last-build
+	docker commit patch-latest $(REPO):$(VERSION)
+
 build:
-	docker build -t $(IMG) ..
+	docker build -t $(REPO):latest ..
+	docker tag $(REPO):latest $(IMG)
 
 .staging: .prepared .postgres staging.yaml
 	kubectl apply -f staging.yaml
@@ -75,9 +88,9 @@ build:
 	touch .pgsecret
 
 .pgdisk:
+# example for google cloud:
 	gcloud compute disks create $(POSTGRES_DISK_NAME) --size $(POSTGRES_DISK_SIZE) --type pd-ssd --zone $(ZONE)
 	touch .pgdisk
-
 
 .prepared:
 	@echo Configure your app...
